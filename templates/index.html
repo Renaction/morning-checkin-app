@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌅 Morning Check-in</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .date {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+
+        .mood-section, .plans-section {
+            margin-bottom: 30px;
+        }
+
+        .mood-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .mood-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .mood-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .mood-option.selected {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.2);
+        }
+
+        .plans-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .plan-input {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+            cursor: move;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .plan-input:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .plan-input.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .plan-input.drag-over {
+            background: rgba(74, 222, 128, 0.1);
+            border: 2px dashed #4ade80;
+        }
+
+        .drag-handle {
+            color: rgba(255, 255, 255, 0.5);
+            margin-right: 10px;
+            cursor: grab;
+            user-select: none;
+            font-size: 18px;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .plan-input input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .plan-input button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .plan-input button:hover {
+            background: #dc2626;
+        }
+
+        .add-plan-btn {
+            background: #4ade80;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .add-plan-btn:hover {
+            background: #16a34a;
+        }
+
+        .submit-btn {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto 0;
+            transition: background 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: #7c3aed;
+        }
+
+        .submit-btn:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .recent-checkins {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .checkin-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .checkin-date {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .checkin-mood {
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .checkin-plans {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .checkin-plans li {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+        }
+
+        .success-message {
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid #4ade80;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .already-checked-in {
+            text-align: center;
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .edit-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .edit-btn:hover {
+            background: #d97706;
+        }
+
+        .editing-mode {
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid #4ade80;
+        }
+
+        .cancel-btn {
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .cancel-btn:hover {
+            background: #4b5563;
+        }
+
+        .thoughts-section {
+            margin-bottom: 30px;
+        }
+
+        .thoughts-textarea {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 120px;
+            box-sizing: border-box;
+        }
+
+        .links-section, .files-section {
+            margin-bottom: 30px;
+        }
+
+        .link-input {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .link-input input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        .link-input button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .link-input button:hover {
+            background: #dc2626;
+        }
+
+        .file-upload {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .file-upload.dragover {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .file-list {
+            margin-top: 15px;
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-remove {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .displayed-files, .displayed-links {
+            margin-top: 15px;
+        }
+
+        .displayed-file, .displayed-link {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .displayed-file img {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 5px;
+        }
+
+        .displayed-link a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .displayed-link a:hover {
+            text-decoration: underline;
+        }
+
+        .thoughts-display {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-style: italic;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌅 Morning Check-in</h1>
+        <div class="date">{{ today }}</div>
+
+        {% if already_checked_in and not request.args.get('edit') %}
+        <div class="already-checked-in">
+            <h3>✅ You've already checked in today!</h3>
+            <p>Great job staying consistent with your morning routine.</p>
+            <button class="edit-btn" onclick="enterEditMode()">✏️ Edit Today's Check-in</button>
+        </div>
+        {% else %}
+        {% if already_checked_in %}
+        <div class="already-checked-in editing-mode">
+            <h3>✏️ Editing Today's Check-in</h3>
+            <p>Make changes to your mood or plans below.</p>
+        </div>
+        {% endif %}
+        <form id="checkinForm">
+            <div class="mood-section">
+                <h3>How are you feeling today?</h3>
+                <div class="mood-options">
+                    <div class="mood-option" data-mood="😴 Sleepy/Low energy">
+                        😴 Sleepy/Low energy
+                    </div>
+                    <div class="mood-option" data-mood="😐 Neutral/Okay">
+                        😐 Neutral/Okay
+                    </div>
+                    <div class="mood-option" data-mood="😊 Good/Energetic">
+                        😊 Good/Energetic
+                    </div>
+                    <div class="mood-option" data-mood="🚀 Excellent/Super motivated">
+                        🚀 Excellent/Super motivated
+                    </div>
+                </div>
+            </div>
+
+            <div class="plans-section">
+                <h3>What do you plan to accomplish today?</h3>
+                <div class="plans-container">
+                    <div id="plansContainer">
+                        <div class="plan-input">
+                            <span class="drag-handle">⋮</span>
+                            <input type="text" placeholder="Enter your first plan..." class="plan-text">
+                            <button type="button" onclick="removePlan(this)" style="display: none;">✕</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-plan-btn" onclick="addPlan()">+ Add Another Plan</button>
+                </div>
+            </div>
+
+            <div class="thoughts-section">
+                <h3>💭 Free Thoughts</h3>
+                <textarea class="thoughts-textarea" placeholder="What's on your mind? Reflect on your goals, challenges, or anything else..."></textarea>
+            </div>
+
+            <div class="links-section">
+                <h3>🔗 Useful Links</h3>
+                <div class="plans-container">
+                    <div id="linksContainer">
+                        <div class="link-input">
+                            <input type="text" placeholder="Enter a useful link (articles, tools, inspiration...)" class="link-text">
+                            <button type="button" onclick="removeLink(this)" style="display: none;">✕</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-plan-btn" onclick="addLink()">+ Add Another Link</button>
+                </div>
+            </div>
+
+            <div class="files-section">
+                <h3>📎 Files & Pictures</h3>
+                <div class="plans-container">
+                    <div class="file-upload" id="fileUpload">
+                        <p>📁 Click to select files or drag & drop here</p>
+                        <p style="opacity: 0.7; font-size: 0.9em;">Images, documents, or any files you want to attach</p>
+                        <input type="file" multiple accept="*/*" style="display: none;" id="fileInput">
+                    </div>
+                    <div class="file-list" id="fileList"></div>
+                </div>
+            </div>
+
+            {% if already_checked_in %}
+            <button type="submit" class="submit-btn">Update Check-in</button>
+            <button type="button" class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+            {% else %}
+            <button type="submit" class="submit-btn">Submit Check-in</button>
+            {% endif %}
+        </form>
+        {% endif %}
+
+        {% if recent_checkins %}
+        <div class="recent-checkins">
+            <h3>📅 Recent Check-ins</h3>
+            {% for checkin in recent_checkins %}
+            <div class="checkin-card">
+                <div class="checkin-date">{{ checkin.date }}</div>
+                <div class="checkin-mood">{{ checkin.mood }}</div>
+                <ul class="checkin-plans">
+                    {% for plan in checkin.plans %}
+                    <li>{{ plan }}</li>
+                    {% endfor %}
+                </ul>
+                {% if checkin.thoughts %}
+                <div class="thoughts-display">{{ checkin.thoughts }}</div>
+                {% endif %}
+                {% if checkin.links %}
+                <div class="displayed-links">
+                    <strong>🔗 Links:</strong>
+                    {% for link in checkin.links %}
+                    <div class="displayed-link">
+                        <a href="{{ link }}" target="_blank" rel="noopener">{{ link }}</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if checkin.files %}
+                <div class="displayed-files">
+                    <strong>📎 Files:</strong>
+                    {% for file in checkin.files %}
+                    <div class="displayed-file">
+                        {% if file.type.startswith('image/') %}
+                            <img src="/uploads/{{ file.filename }}" alt="{{ file.original_name }}">
+                        {% endif %}
+                        <span>{{ file.original_name }}</span>
+                        <a href="/uploads/{{ file.filename }}" target="_blank">View</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        let selectedMood = null;
+        let isEditMode = {{ 'true' if already_checked_in and request.args.get('edit') else 'false' }};
+
+        {% if todays_checkin and request.args.get('edit') %}
+        // Pre-populate form with today's data when editing
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set mood
+            const todaysMood = '{{ todays_checkin.mood }}';
+            selectedMood = todaysMood;
+            document.querySelector(`[data-mood="${todaysMood}"]`).classList.add('selected');
+
+            // Set plans
+            const todaysPlans = {{ todays_checkin.plans | tojson }};
+            const plansContainer = document.getElementById('plansContainer');
+            plansContainer.innerHTML = '';
+
+            todaysPlans.forEach((plan, index) => {
+                const planInput = document.createElement('div');
+                planInput.className = 'plan-input';
+                planInput.innerHTML = `
+                    <span class="drag-handle">⋮</span>
+                    <input type="text" placeholder="Enter plan..." class="plan-text" value="${plan}">
+                    <button type="button" onclick="removePlan(this)" ${index === 0 ? 'style="display: none;"' : ''}>✕</button>
+                `;
+                makeDraggable(planInput);
+                plansContainer.appendChild(planInput);
+            });
+
+            // Set thoughts
+            {% if todays_checkin.thoughts %}
+            document.querySelector('.thoughts-textarea').value = '{{ todays_checkin.thoughts | replace("'", "\'"  ) | replace('\n', '\\n') }}';
+            {% endif %}
+
+            // Set links
+            {% if todays_checkin.links %}
+            const todaysLinks = {{ todays_checkin.links | tojson }};
+            const linksContainer = document.getElementById('linksContainer');
+            linksContainer.innerHTML = '';
+
+            todaysLinks.forEach((link, index) => {
+                const linkInput = document.createElement('div');
+                linkInput.className = 'link-input';
+                linkInput.innerHTML = `
+                    <input type="text" placeholder="Enter link..." class="link-text" value="${link}">
+                    <button type="button" onclick="removeLink(this)" ${index === 0 ? 'style="display: none;"' : ''}>✕</button>
+                `;
+                linksContainer.appendChild(linkInput);
+            });
+            {% endif %}
+
+            // Make all plan inputs draggable
+            document.querySelectorAll('.plan-input').forEach(makeDraggable);
+        });
+        {% else %}
+        // Make existing plan inputs draggable on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.plan-input').forEach(makeDraggable);
+        });
+        {% endif %}
+
+        function enterEditMode() {
+            window.location.href = '/?edit=true';
+        }
+
+        function cancelEdit() {
+            window.location.href = '/';
+        }
+
+        // Mood selection
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedMood = this.dataset.mood;
+            });
+        });
+
+        // Plan management
+        function addPlan() {
+            const container = document.getElementById('plansContainer');
+            const planInput = document.createElement('div');
+            planInput.className = 'plan-input';
+            planInput.innerHTML = `
+                <span class="drag-handle">⋮</span>
+                <input type="text" placeholder="Enter another plan..." class="plan-text">
+                <button type="button" onclick="removePlan(this)">✕</button>
+            `;
+            makeDraggable(planInput);
+            container.appendChild(planInput);
+        }
+
+        // Drag and drop functionality for plans
+        let draggedElement = null;
+
+        function makeDraggable(element) {
+            element.draggable = true;
+
+            element.addEventListener('dragstart', function(e) {
+                draggedElement = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.outerHTML);
+            });
+
+            element.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
+                draggedElement = null;
+                // Remove all drag-over classes
+                document.querySelectorAll('.plan-input').forEach(el => {
+                    el.classList.remove('drag-over');
+                });
+            });
+
+            element.addEventListener('dragover', function(e) {
+                if (draggedElement && draggedElement !== this) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                }
+            });
+
+            element.addEventListener('dragenter', function(e) {
+                if (draggedElement && draggedElement !== this) {
+                    this.classList.add('drag-over');
+                }
+            });
+
+            element.addEventListener('dragleave', function(e) {
+                // Only remove drag-over if we're actually leaving the element
+                if (!this.contains(e.relatedTarget)) {
+                    this.classList.remove('drag-over');
+                }
+            });
+
+            element.addEventListener('drop', function(e) {
+                if (draggedElement && draggedElement !== this) {
+                    e.preventDefault();
+
+                    const container = document.getElementById('plansContainer');
+                    const allPlans = Array.from(container.querySelectorAll('.plan-input'));
+                    const draggedIndex = allPlans.indexOf(draggedElement);
+                    const targetIndex = allPlans.indexOf(this);
+
+                    if (draggedIndex < targetIndex) {
+                        container.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        container.insertBefore(draggedElement, this);
+                    }
+
+                    this.classList.remove('drag-over');
+                }
+            });
+        }
+
+        function removePlan(button) {
+            const planInput = button.parentElement;
+            planInput.remove();
+        }
+
+        // Link management
+        function addLink() {
+            const container = document.getElementById('linksContainer');
+            const linkInput = document.createElement('div');
+            linkInput.className = 'link-input';
+            linkInput.innerHTML = `
+                <input type="text" placeholder="Enter another link..." class="link-text">
+                <button type="button" onclick="removeLink(this)">✕</button>
+            `;
+            container.appendChild(linkInput);
+        }
+
+        function removeLink(button) {
+            const linkInput = button.parentElement;
+            linkInput.remove();
+        }
+
+        // File management
+        let selectedFiles = [];
+
+        document.getElementById('fileUpload').addEventListener('click', function() {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+        });
+
+        // Drag and drop
+        const fileUpload = document.getElementById('fileUpload');
+        fileUpload.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        fileUpload.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        fileUpload.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function handleFiles(files) {
+            const fileList = document.getElementById('fileList');
+
+            Array.from(files).forEach(file => {
+                selectedFiles.push(file);
+
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <span>${getFileIcon(file.type)}</span>
+                        <span>${file.name}</span>
+                        <span style="opacity: 0.7; font-size: 0.9em;">(${formatFileSize(file.size)})</span>
+                    </div>
+                    <button class="file-remove" onclick="removeFile(this, '${file.name}')">✕</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(button, fileName) {
+            selectedFiles = selectedFiles.filter(file => file.name !== fileName);
+            button.parentElement.remove();
+        }
+
+        function getFileIcon(mimeType) {
+            if (mimeType.startsWith('image/')) return '🖼️';
+            if (mimeType.startsWith('video/')) return '🎥';
+            if (mimeType.startsWith('audio/')) return '🎵';
+            if (mimeType.includes('pdf')) return '📄';
+            if (mimeType.includes('doc') || mimeType.includes('word')) return '📄';
+            if (mimeType.includes('sheet') || mimeType.includes('excel')) return '📈';
+            return '📁';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Form submission
+        document.getElementById('checkinForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!selectedMood) {
+                alert('Please select your mood');
+                return;
+            }
+
+            const plans = Array.from(document.querySelectorAll('.plan-text'))
+                .map(input => input.value.trim())
+                .filter(plan => plan !== '');
+
+            if (plans.length === 0) {
+                alert('Please enter at least one plan');
+                return;
+            }
+
+            const thoughts = document.querySelector('.thoughts-textarea').value.trim();
+            const links = Array.from(document.querySelectorAll('.link-text'))
+                .map(input => input.value.trim())
+                .filter(link => link !== '');
+
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('mood', selectedMood);
+            formData.append('plans', JSON.stringify(plans));
+            formData.append('thoughts', thoughts);
+            formData.append('links', JSON.stringify(links));
+            formData.append('is_edit', isEditMode);
+
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+
+            try {
+                const response = await fetch('/checkin', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error submitting check-in. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
